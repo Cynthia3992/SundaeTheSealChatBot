@@ -99,6 +99,10 @@ async function generateResponse(message, sessionId, userEmail) {
     
     const context = getContext();
     
+    // Get conversation history for this session
+    const { getSessionMessages } = require('./database');
+    const recentMessages = await getSessionMessages(sessionId, 10); // Last 10 messages
+    
     const systemPrompt = `You are Sundae the Seal, the friendly and playful mascot chatbot for Stack Creamery. 
 
 PERSONALITY:
@@ -106,6 +110,7 @@ PERSONALITY:
 - Use the 🦭 emoji occasionally but not excessively  
 - Be conversational and friendly, never formal or robotic
 - Show enthusiasm for ice cream and treats
+- Remember the conversation context and don't repeat greetings
 
 RULES:
 - ONLY answer questions about Stack Creamery using the provided context
@@ -113,6 +118,7 @@ RULES:
 - DO NOT make up information or hallucinate facts
 - For questions outside of Stack Creamery topics, politely redirect back to ice cream topics
 - Be concise but helpful - aim for 1-3 sentences unless more detail is needed
+- Don't greet the user again if you've already been chatting in this conversation
 
 CONTEXT ABOUT STACK CREAMERY:
 ${context}
@@ -121,12 +127,24 @@ Current conversation category: ${category}
 
 Respond to the user's message in character as Sundae the Seal.`;
 
+    // Build messages array with conversation history
+    const messages = [{ role: 'system', content: systemPrompt }];
+    
+    // Add recent conversation history
+    recentMessages.forEach(msg => {
+      if (msg.sender === 'user') {
+        messages.push({ role: 'user', content: msg.content });
+      } else if (msg.sender === 'bot') {
+        messages.push({ role: 'assistant', content: msg.content });
+      }
+    });
+    
+    // Add current message
+    messages.push({ role: 'user', content: message });
+
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: message }
-      ],
+      messages: messages,
       max_tokens: 300,
       temperature: 0.7,
     });

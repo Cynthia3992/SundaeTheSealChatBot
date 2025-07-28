@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sundae the Seal - Admin Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: #f8fafc;
+            color: #334155;
+            line-height: 1.6;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+            color: white;
+            padding: 2rem 0;
+            text-align: center;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .dashboard-nav {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .nav-tab {
+            padding: 1rem 1.5rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            color: #64748b;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .nav-tab.active {
+            color: #1e3a8a;
+            border-bottom-color: #1e3a8a;
+        }
+
+        .nav-tab:hover {
+            color: #1e3a8a;
+            background-color: #f1f5f9;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e2e8f0;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1e3a8a;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: #64748b;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .table-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e2e8f0;
+            overflow: hidden;
+        }
+
+        .table-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #e2e8f0;
+            background: #f8fafc;
+        }
+
+        .table-header h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        th {
+            background: #f8fafc;
+            font-weight: 600;
+            color: #374151;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        td {
+            font-size: 0.9rem;
+        }
+
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-transform: capitalize;
+        }
+
+        .status-active { background: #dcfce7; color: #166534; }
+        .status-ended { background: #fef3c7; color: #92400e; }
+        .status-user { background: #dbeafe; color: #1d4ed8; }
+        .status-bot { background: #f3e8ff; color: #7c3aed; }
+
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: #64748b;
+        }
+
+        .error {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #dc2626;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+
+        .refresh-btn {
+            background: #1e3a8a;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            margin-bottom: 1rem;
+            transition: background 0.2s;
+        }
+
+        .refresh-btn:hover {
+            background: #1e40af;
+        }
+
+        .message-content {
+            max-width: 300px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .timestamp {
+            color: #64748b;
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🦭 Sundae the Seal Admin Dashboard</h1>
+        <p>Stack Creamery Chatbot Analytics</p>
+    </div>
+
+    <div class="container">
+        <div class="dashboard-nav">
+            <button class="nav-tab active" onclick="showTab('overview')">Overview</button>
+            <button class="nav-tab" onclick="showTab('sessions')">Chat Sessions</button>
+            <button class="nav-tab" onclick="showTab('messages')">All Messages</button>
+            <button class="nav-tab" onclick="showTab('unknown')">Unknown Questions</button>
+        </div>
+
+        <!-- Overview Tab -->
+        <div id="overview" class="tab-content active">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="total-sessions">-</div>
+                    <div class="stat-label">Total Sessions</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="total-messages">-</div>
+                    <div class="stat-label">Total Messages</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="avg-rating">-</div>
+                    <div class="stat-label">Average Rating</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="unknown-count">-</div>
+                    <div class="stat-label">Unknown Questions</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sessions Tab -->
+        <div id="sessions" class="tab-content">
+            <button class="refresh-btn" onclick="loadSessions()">Refresh Sessions</button>
+            <div class="table-container">
+                <div class="table-header">
+                    <h3>Chat Sessions</h3>
+                </div>
+                <div id="sessions-content">
+                    <div class="loading">Loading sessions...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Messages Tab -->
+        <div id="messages" class="tab-content">
+            <button class="refresh-btn" onclick="loadMessages()">Refresh Messages</button>
+            <div class="table-container">
+                <div class="table-header">
+                    <h3>All Messages</h3>
+                </div>
+                <div id="messages-content">
+                    <div class="loading">Loading messages...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Unknown Questions Tab -->
+        <div id="unknown" class="tab-content">
+            <button class="refresh-btn" onclick="loadUnknownQuestions()">Refresh Unknown Questions</button>
+            <div class="table-container">
+                <div class="table-header">
+                    <h3>Questions Needing Review</h3>
+                </div>
+                <div id="unknown-content">
+                    <div class="loading">Loading unknown questions...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/api/logs';
+        const ADMIN_KEY = 'stackcreamery2024';
+
+        // Tab management
+        function showTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.nav-tab').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // Show selected tab
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+
+            // Load data for tab
+            switch(tabName) {
+                case 'overview':
+                    loadOverview();
+                    break;
+                case 'sessions':
+                    loadSessions();
+                    break;
+                case 'messages':
+                    loadMessages();
+                    break;
+                case 'unknown':
+                    loadUnknownQuestions();
+                    break;
+            }
+        }
+
+        // API helper
+        async function apiCall(endpoint) {
+            try {
+                const response = await fetch(`${API_BASE}${endpoint}`, {
+                    headers: {
+                        'x-admin-key': ADMIN_KEY
+                    }
+                });
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                return await response.json();
+            } catch (error) {
+                console.error('API Error:', error);
+                throw error;
+            }
+        }
+
+        // Load overview stats
+        async function loadOverview() {
+            try {
+                const [sessions, messages, unknown] = await Promise.all([
+                    apiCall('/sessions'),
+                    apiCall('/messages'),
+                    apiCall('/unknown-questions')
+                ]);
+
+                // Calculate stats
+                const totalSessions = sessions.length;
+                const totalMessages = messages.length;
+                const unknownCount = unknown.length;
+                
+                // Calculate average rating
+                const ratingsOnly = sessions.filter(s => s.feedback_rating).map(s => s.feedback_rating);
+                const avgRating = ratingsOnly.length > 0 
+                    ? (ratingsOnly.reduce((a, b) => a + b, 0) / ratingsOnly.length).toFixed(1)
+                    : 'N/A';
+
+                // Update stats
+                document.getElementById('total-sessions').textContent = totalSessions;
+                document.getElementById('total-messages').textContent = totalMessages;
+                document.getElementById('avg-rating').textContent = avgRating;
+                document.getElementById('unknown-count').textContent = unknownCount;
+
+            } catch (error) {
+                console.error('Error loading overview:', error);
+            }
+        }
+
+        // Load sessions
+        async function loadSessions() {
+            try {
+                const sessions = await apiCall('/sessions');
+                const content = document.getElementById('sessions-content');
+                
+                if (sessions.length === 0) {
+                    content.innerHTML = '<div class="loading">No sessions found</div>';
+                    return;
+                }
+
+                const table = `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>User Email</th>
+                                <th>Start Time</th>
+                                <th>Status</th>
+                                <th>Messages</th>
+                                <th>Rating</th>
+                                <th>Feedback</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${sessions.map(session => `
+                                <tr>
+                                    <td>${session.user_email || 'Anonymous'}</td>
+                                    <td class="timestamp">${new Date(session.start_time).toLocaleString()}</td>
+                                    <td>
+                                        <span class="status-badge ${session.end_time ? 'status-ended' : 'status-active'}">
+                                            ${session.end_time ? 'Ended' : 'Active'}
+                                        </span>
+                                    </td>
+                                    <td>${session.message_count || 0}</td>
+                                    <td>${session.feedback_rating ? `${session.feedback_rating}/5 ⭐` : '-'}</td>
+                                    <td class="message-content">${session.feedback_comments || '-'}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+                content.innerHTML = table;
+            } catch (error) {
+                document.getElementById('sessions-content').innerHTML = 
+                    `<div class="error">Error loading sessions: ${error.message}</div>`;
+            }
+        }
+
+        // Load messages
+        async function loadMessages() {
+            try {
+                const messages = await apiCall('/messages');
+                const content = document.getElementById('messages-content');
+                
+                if (messages.length === 0) {
+                    content.innerHTML = '<div class="loading">No messages found</div>';
+                    return;
+                }
+
+                const table = `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Sender</th>
+                                <th>Category</th>
+                                <th>Message</th>
+                                <th>Session ID</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${messages.map(msg => `
+                                <tr>
+                                    <td class="timestamp">${new Date(msg.timestamp).toLocaleString()}</td>
+                                    <td>
+                                        <span class="status-badge status-${msg.sender}">
+                                            ${msg.sender === 'user' ? '👤 User' : '🦭 Sundae'}
+                                        </span>
+                                    </td>
+                                    <td>${msg.category || '-'}</td>
+                                    <td class="message-content" title="${msg.content}">${msg.content}</td>
+                                    <td class="timestamp">${msg.session_id.substring(0, 8)}...</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+                content.innerHTML = table;
+            } catch (error) {
+                document.getElementById('messages-content').innerHTML = 
+                    `<div class="error">Error loading messages: ${error.message}</div>`;
+            }
+        }
+
+        // Load unknown questions
+        async function loadUnknownQuestions() {
+            try {
+                const questions = await apiCall('/unknown-questions');
+                const content = document.getElementById('unknown-content');
+                
+                if (questions.length === 0) {
+                    content.innerHTML = '<div class="loading">No unknown questions found</div>';
+                    return;
+                }
+
+                const table = `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Question</th>
+                                <th>Session ID</th>
+                                <th>Reviewed</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${questions.map(q => `
+                                <tr>
+                                    <td class="timestamp">${new Date(q.timestamp).toLocaleString()}</td>
+                                    <td class="message-content" title="${q.question}">${q.question}</td>
+                                    <td class="timestamp">${q.session_id.substring(0, 8)}...</td>
+                                    <td>
+                                        <span class="status-badge ${q.reviewed ? 'status-ended' : 'status-active'}">
+                                            ${q.reviewed ? 'Yes' : 'No'}
+                                        </span>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+                content.innerHTML = table;
+            } catch (error) {
+                document.getElementById('unknown-content').innerHTML = 
+                    `<div class="error">Error loading questions: ${error.message}</div>`;
+            }
+        }
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            loadOverview();
+        });
+    </script>
+</body>
+</html>

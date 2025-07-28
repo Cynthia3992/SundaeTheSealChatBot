@@ -126,10 +126,70 @@ Replace the placeholder content in `backend/data/summary.txt` with:
 - `unknown_questions`: Flagged unclear queries
 - `inappropriate_logs`: Filtered inappropriate content
 
-### Admin Access
-Access logs with admin header:
+### Available Log Endpoints
+
+All log endpoints require admin authentication using your `ADMIN_PASSWORD` as the `x-admin-key` header.
+
+#### 1. Chat Sessions
+View all chat sessions with user info, timestamps, and feedback:
 ```bash
-curl -H "x-admin-key: YOUR_ADMIN_PASSWORD" http://localhost:5000/api/logs/sessions
+curl -H "x-admin-key: YOUR_ADMIN_PASSWORD" https://your-app-url.railway.app/api/logs/sessions
+```
+**Returns:** Session IDs, user emails, start/end times, feedback ratings, message counts
+
+#### 2. All Messages
+View individual chat messages with full conversation history:
+```bash
+curl -H "x-admin-key: YOUR_ADMIN_PASSWORD" https://your-app-url.railway.app/api/logs/messages
+```
+**Returns:** Message content, sender (user/bot), categories, timestamps, session IDs
+
+#### 3. Unknown Questions
+View questions Sundae couldn't answer (flagged for review):
+```bash
+curl -H "x-admin-key: YOUR_ADMIN_PASSWORD" https://your-app-url.railway.app/api/logs/unknown-questions
+```
+**Returns:** Unclear questions, timestamps, review status
+
+#### 4. Health Check
+Check if the API is running (no authentication required):
+```bash
+curl https://your-app-url.railway.app/api/health
+```
+
+### Browser Access with Headers
+To view logs in your browser, use a browser extension like "ModHeader" (Chrome) or "Header Editor" (Firefox):
+1. Install the extension
+2. Add header: `x-admin-key: YOUR_ADMIN_PASSWORD`  
+3. Visit the log URLs directly in your browser
+
+### Railway Dashboard Logs
+Additional system logs available in Railway:
+- Go to your Railway project dashboard
+- Click the **"Logs"** tab
+- View server startup, API requests, and error logs
+
+### Quick Access Commands (Stack Creamery Deployment)
+For your deployed chatbot at `https://sundaethesealchatbot-production.up.railway.app/`:
+
+**View Sessions:**
+```bash
+curl -H "x-admin-key: stackcreamery2024" https://sundaethesealchatbot-production.up.railway.app/api/logs/sessions
+```
+
+**View Messages:**
+```bash
+curl -H "x-admin-key: stackcreamery2024" https://sundaethesealchatbot-production.up.railway.app/api/logs/messages
+```
+
+**View Unknown Questions:**
+```bash
+curl -H "x-admin-key: stackcreamery2024" https://sundaethesealchatbot-production.up.railway.app/api/logs/unknown-questions
+```
+
+**Health Check:**
+```bash
+curl https://sundaethesealchatbot-production.up.railway.app/api/health
 ```
 
 ## 🛡️ Security Features

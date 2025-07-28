@@ -213,6 +213,20 @@ function getAllMessages() {
   });
 }
 
+function getSessionMessages(sessionId, limit = 20) {
+  return new Promise((resolve, reject) => {
+    const sql = `SELECT * FROM messages WHERE session_id = ? ORDER BY timestamp ASC LIMIT ?`;
+    
+    db.all(sql, [sessionId, limit], (err, rows) => {
+      if (err) {
+        reject(err);
+        return;
+      }
+      resolve(rows);
+    });
+  });
+}
+
 module.exports = {
   initializeDatabase,
   logMessage,
@@ -222,5 +236,6 @@ module.exports = {
   logInappropriateContent,
   getSessionLogs,
   getUnknownQuestions,
-  getAllMessages
+  getAllMessages,
+  getSessionMessages
 };
