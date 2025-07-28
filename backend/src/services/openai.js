@@ -100,7 +100,7 @@ async function generateResponse(message, sessionId, userEmail) {
     const context = getContext();
     
     // Get conversation history for this session
-    const { getSessionMessages } = require('./postgres');
+    const { getSessionMessages } = require('./database-fallback');
     const recentMessages = await getSessionMessages(sessionId, 10); // Last 10 messages
     
     const systemPrompt = `You are Sundae the Seal, the friendly and playful mascot chatbot for Stack Creamery. 

@@ -7,7 +7,7 @@ require('dotenv').config();
 const chatRoutes = require('./routes/chat');
 const authRoutes = require('./routes/auth');
 const logRoutes = require('./routes/logs');
-const { initializeDatabase } = require('./services/postgres');
+const { initializeDatabase } = require('./services/database-fallback');
 const { loadContext } = require('./services/context');
 
 const app = express();
@@ -40,10 +40,6 @@ if (process.env.NODE_ENV === 'production') {
   app.use(express.static(path.join(__dirname, '../../frontend/dist')));
 }
 
-// Serve admin dashboard (always available)
-const path = require('path');
-app.use('/admin', express.static(path.join(__dirname, '../public')));
-
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/chat', chatRoutes);
@@ -52,11 +48,6 @@ app.use('/api/logs', logRoutes);
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
-});
-
-// Admin dashboard redirect
-app.get('/admin', (req, res) => {
-  res.redirect('/admin/admin.html');
 });
 
 // Error handling middleware

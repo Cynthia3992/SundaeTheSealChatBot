@@ -1,50 +1,8 @@
 const express = require('express');
-const { getSessionLogs, getUnknownQuestions, endSession } = require('../services/postgres');
+const { endSession } = require('../services/database-fallback');
 const router = express.Router();
 
-// Simple admin check - in production, use proper JWT tokens
-function isAdmin(req, res, next) {
-  const adminKey = req.headers['x-admin-key'];
-  if (adminKey !== process.env.ADMIN_PASSWORD) {
-    return res.status(401).json({ error: 'Unauthorized' });
-  }
-  next();
-}
-
-router.get('/sessions', isAdmin, async (req, res) => {
-  try {
-    const limit = parseInt(req.query.limit) || 100;
-    const sessions = await getSessionLogs(limit);
-    res.json(sessions);
-  } catch (error) {
-    console.error('Error fetching session logs:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-router.get('/unknown-questions', isAdmin, async (req, res) => {
-  try {
-    const reviewed = req.query.reviewed === 'true';
-    const questions = await getUnknownQuestions(reviewed);
-    res.json(questions);
-  } catch (error) {
-    console.error('Error fetching unknown questions:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-// Add messages endpoint
-router.get('/messages', isAdmin, async (req, res) => {
-  try {
-    const { getAllMessages } = require('../services/postgres');
-    const messages = await getAllMessages();
-    res.json(messages);
-  } catch (error) {
-    console.error('Error fetching messages:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
+// Feedback endpoint for users to submit feedback
 router.post('/feedback', async (req, res) => {
   try {
     const { sessionId, feedback } = req.body;
