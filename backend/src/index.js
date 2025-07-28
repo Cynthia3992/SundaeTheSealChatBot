@@ -7,7 +7,7 @@ require('dotenv').config();
 const chatRoutes = require('./routes/chat');
 const authRoutes = require('./routes/auth');
 const logRoutes = require('./routes/logs');
-const { initializeDatabase } = require('./services/database');
+const { initializeDatabase } = require('./services/postgres');
 const { loadContext } = require('./services/context');
 
 const app = express();

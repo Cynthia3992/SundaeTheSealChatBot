@@ -1,6 +1,6 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
-const { createSession } = require('../services/database');
+const { createSession } = require('../services/postgres');
 const router = express.Router();
 
 const AUTHORIZED_EMAILS = process.env.AUTHORIZED_EMAILS 

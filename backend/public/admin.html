@@ -324,13 +324,22 @@
         // API helper
         async function apiCall(endpoint) {
             try {
+                console.log(`Making API call to: ${API_BASE}${endpoint}`);
                 const response = await fetch(`${API_BASE}${endpoint}`, {
                     headers: {
-                        'x-admin-key': ADMIN_KEY
+                        'x-admin-key': ADMIN_KEY,
+                        'Content-Type': 'application/json'
                     }
                 });
-                if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                return await response.json();
+                console.log(`API Response: ${response.status} ${response.statusText}`);
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('API Error Response:', errorText);
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
+                }
+                const data = await response.json();
+                console.log('API Data:', data);
+                return data;
             } catch (error) {
                 console.error('API Error:', error);
                 throw error;

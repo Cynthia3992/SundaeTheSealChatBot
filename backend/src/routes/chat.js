@@ -1,6 +1,6 @@
 const express = require('express');
 const { generateResponse } = require('../services/openai');
-const { logMessage, logUnknownQuestion, logInappropriateContent, createSession } = require('../services/database');
+const { logMessage, logUnknownQuestion, logInappropriateContent, createSession } = require('../services/postgres');
 const router = express.Router();
 
 router.post('/', async (req, res) => {

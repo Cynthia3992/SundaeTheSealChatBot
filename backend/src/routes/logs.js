@@ -1,5 +1,5 @@
 const express = require('express');
-const { getSessionLogs, getUnknownQuestions, endSession } = require('../services/database');
+const { getSessionLogs, getUnknownQuestions, endSession } = require('../services/postgres');
 const router = express.Router();
 
 // Simple admin check - in production, use proper JWT tokens
@@ -36,7 +36,7 @@ router.get('/unknown-questions', isAdmin, async (req, res) => {
 // Add messages endpoint
 router.get('/messages', isAdmin, async (req, res) => {
   try {
-    const { getAllMessages } = require('../services/database');
+    const { getAllMessages } = require('../services/postgres');
     const messages = await getAllMessages();
     res.json(messages);
   } catch (error) {
