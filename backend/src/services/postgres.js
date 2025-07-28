@@ -6,15 +6,21 @@ let pool;
 function initializeDatabase() {
   return new Promise(async (resolve, reject) => {
     try {
-      // Create connection pool
+      if (!process.env.DATABASE_URL) {
+        throw new Error('DATABASE_URL environment variable is not set');
+      }
+
+      // Create connection pool  
       pool = new Pool({
         connectionString: process.env.DATABASE_URL,
         ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
       });
 
+      // Test the connection
+      await pool.query('SELECT NOW()');
       console.log('Connected to PostgreSQL database');
 
-      // Create tables
+      // Create tables (no foreign key constraints to avoid issues)
       await pool.query(`
         CREATE TABLE IF NOT EXISTS chat_sessions (
           id VARCHAR(36) PRIMARY KEY,
@@ -34,8 +40,7 @@ function initializeDatabase() {
           content TEXT NOT NULL,
           sender TEXT NOT NULL,
           category TEXT,
-          timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-          FOREIGN KEY (session_id) REFERENCES chat_sessions (id)
+          timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
       `);
 
@@ -45,8 +50,7 @@ function initializeDatabase() {
           session_id VARCHAR(36),
           question TEXT NOT NULL,
           timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-          reviewed BOOLEAN DEFAULT FALSE,
-          FOREIGN KEY (session_id) REFERENCES chat_sessions (id)
+          reviewed BOOLEAN DEFAULT FALSE
         )
       `);
 
@@ -56,8 +60,7 @@ function initializeDatabase() {
           session_id VARCHAR(36),
           content TEXT NOT NULL,
           user_ip TEXT,
-          timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-          FOREIGN KEY (session_id) REFERENCES chat_sessions (id)
+          timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
       `);
 
@@ -88,8 +91,14 @@ function createSession(userEmail, sessionId = null) {
   return new Promise(async (resolve, reject) => {
     try {
       const id = sessionId || uuidv4();
-      const query = `INSERT INTO chat_sessions (id, user_email) VALUES ($1, $2) ON CONFLICT (id) DO NOTHING`;
-      await pool.query(query, [id, userEmail]);
+      
+      // Check if session exists first
+      const existingSession = await pool.query('SELECT id FROM chat_sessions WHERE id = $1', [id]);
+      
+      if (existingSession.rows.length === 0) {
+        await pool.query('INSERT INTO chat_sessions (id, user_email) VALUES ($1, $2)', [id, userEmail]);
+      }
+      
       resolve(id);
     } catch (error) {
       console.error('Error creating session:', error);
