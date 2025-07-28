@@ -33,10 +33,31 @@ function App() {
     setShowFeedback(true);
   };
 
-  const handleFeedbackSubmit = (feedback: SessionFeedback) => {
+  const handleFeedbackSubmit = async (feedback: SessionFeedback) => {
     if (currentSession) {
-      // Submit feedback to backend
-      console.log('Feedback submitted:', feedback);
+      try {
+        console.log('Submitting feedback:', feedback);
+        
+        const response = await fetch('/api/logs/feedback', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            sessionId: currentSession.id,
+            feedback
+          }),
+        });
+        
+        if (response.ok) {
+          console.log('Feedback submitted successfully');
+        } else {
+          console.error('Failed to submit feedback:', response.status);
+        }
+      } catch (error) {
+        console.error('Error submitting feedback:', error);
+      }
+      
       setShowFeedback(false);
       setCurrentSession(null);
     }
