@@ -33,6 +33,18 @@ router.get('/unknown-questions', isAdmin, async (req, res) => {
   }
 });
 
+// Add messages endpoint
+router.get('/messages', isAdmin, async (req, res) => {
+  try {
+    const { getAllMessages } = require('../services/database');
+    const messages = await getAllMessages();
+    res.json(messages);
+  } catch (error) {
+    console.error('Error fetching messages:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 router.post('/feedback', async (req, res) => {
   try {
     const { sessionId, feedback } = req.body;

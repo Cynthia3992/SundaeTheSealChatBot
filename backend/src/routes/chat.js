@@ -1,6 +1,6 @@
 const express = require('express');
 const { generateResponse } = require('../services/openai');
-const { logMessage, logUnknownQuestion, logInappropriateContent } = require('../services/database');
+const { logMessage, logUnknownQuestion, logInappropriateContent, createSession } = require('../services/database');
 const router = express.Router();
 
 router.post('/', async (req, res) => {
@@ -9,6 +9,14 @@ router.post('/', async (req, res) => {
     
     if (!message || !sessionId) {
       return res.status(400).json({ error: 'Message and session ID are required' });
+    }
+    
+    // Ensure session exists in database
+    try {
+      await createSession(userEmail, sessionId);
+    } catch (error) {
+      // Session might already exist, that's ok
+      console.log('Session already exists or creation failed:', error.message);
     }
     
     // Log user message

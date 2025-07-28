@@ -91,18 +91,18 @@ function logMessage(sessionId, content, sender, category = null) {
   });
 }
 
-function createSession(userEmail) {
+function createSession(userEmail, sessionId = null) {
   return new Promise((resolve, reject) => {
-    const sessionId = uuidv4();
-    const sql = `INSERT INTO chat_sessions (id, user_email) VALUES (?, ?)`;
+    const id = sessionId || uuidv4();
+    const sql = `INSERT OR IGNORE INTO chat_sessions (id, user_email) VALUES (?, ?)`;
     
-    db.run(sql, [sessionId, userEmail], function(err) {
+    db.run(sql, [id, userEmail], function(err) {
       if (err) {
         console.error('Error creating session:', err);
         reject(err);
         return;
       }
-      resolve(sessionId);
+      resolve(id);
     });
   });
 }
@@ -199,6 +199,20 @@ function getUnknownQuestions(reviewed = false) {
   });
 }
 
+function getAllMessages() {
+  return new Promise((resolve, reject) => {
+    const sql = `SELECT * FROM messages ORDER BY timestamp DESC LIMIT 100`;
+    
+    db.all(sql, [], (err, rows) => {
+      if (err) {
+        reject(err);
+        return;
+      }
+      resolve(rows);
+    });
+  });
+}
+
 module.exports = {
   initializeDatabase,
   logMessage,
@@ -207,5 +221,6 @@ module.exports = {
   logUnknownQuestion,
   logInappropriateContent,
   getSessionLogs,
-  getUnknownQuestions
+  getUnknownQuestions,
+  getAllMessages
 };
