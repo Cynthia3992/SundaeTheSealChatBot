@@ -13,32 +13,24 @@ const AuthGate: React.FC<AuthGateProps> = ({ onLogin }) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Login attempt started', { email, password });
     setLoading(true);
     setError('');
 
     try {
-      console.log('Making fetch request to /api/auth/login');
-      // Check if email is in whitelist and password is correct
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
       });
 
-      console.log('Response received:', response.status, response.statusText);
       const data = await response.json();
-      console.log('Response data:', data);
 
       if (response.ok) {
-        console.log('Login successful');
         onLogin(email);
       } else {
-        console.log('Login failed:', data.message);
         setError(data.message || 'Invalid credentials');
       }
     } catch (err) {
-      console.log('Login error:', err);
       setError('Connection error. Please try again.');
     } finally {
       setLoading(false);
